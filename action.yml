@@ -1,0 +1,10 @@
+name: 'Upload Artifact'
+description: 'Upload artifact without chunking it'
+inputs:
+  name:
+    required: true
+  path:
+    required: true
+runs:
+  using: 'node16'
+  main: 'dist/index.mjs'
