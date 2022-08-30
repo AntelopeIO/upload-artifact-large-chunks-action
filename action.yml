@@ -1,5 +1,5 @@
 name: 'Upload Artifact'
-description: 'Upload artifact without chunking it'
+description: 'Upload artifact in large chunks'
 inputs:
   name:
     required: true
