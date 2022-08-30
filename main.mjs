@@ -27,15 +27,25 @@ try {
    const sz = fs.statSync(path).size;
 
    console.log("Starting upload of file");
-   await axios.put(`${uploadURL}?itemPath=${name}/${path}`, fs.createReadStream(path), {
-      httpsAgent: httpsagent,
-      maxBodyLength: 1024*1024*1024*1024,
-      headers: {
-         "Content-Type": "application/octet-stream",
-         "Content-Length": sz,
-         "Content-Range": `bytes 0-${sz-1}/${sz}`
-      }
-   });
+
+   let offset = 0;
+   while(offset != sz) {
+      const send_this_time = Math.min(sz-offset, 96*1024*1024); //somewhere over 110MB will start returning 413
+      const start = offset;
+      const end = offset+send_this_time-1;
+      console.log(`uploading ${start}-${end}/${sz}`);
+      await axios.put(`${uploadURL}?itemPath=${name}/${path}`, fs.createReadStream(path, {start, end}), {
+         httpsAgent: httpsagent,
+         maxBodyLength: 1024*1024*1024,
+         headers: {
+            "Content-Type": "application/octet-stream",
+            "Content-Length": send_this_time,
+            "Content-Range": `bytes ${start}-${end}/${sz}`
+         }
+      });
+      offset += send_this_time;
+   }
+
    console.log("Upload complete");
 
    await axios.patch(`${artifactURL}&artifactName=${name}`, {"Size": sz}, {httpsAgent: httpsagent});

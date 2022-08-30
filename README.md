@@ -1,7 +1,7 @@
-## Upload Artifact Unchunked
-`actions/upload-artifact`, at the time of this writing, uploads a large file serially in 8MB chunks. There is no way to disable that behavior and it results in alarmingly slow uploads for large files. `upload-artifact-smoothly-action` simply uploads the file in one shot. I've seen this improve upload speeds for large files (100+MB) on the order of 5x, even for GitHub hosted runners which ought to have low latency to the storage platform.
+## Upload Artifact With Large Chunks
+`actions/upload-artifact`, at the time of this writing, uploads a large file serially in 8MB chunks. There is no way to adjust that behavior and it results in alarmingly slow uploads for large files. `upload-artifact-smoothly-action` uploads the file serially in 96MB chunks. I've seen this improve upload speeds for large files (100+MB) on the order of 5x, even for GitHub hosted runners which ought to have low latency to the storage platform.
 
-This action is not as flexible as `actions/upload-artifact`: it only supports uploading a single file. It also doesn't have much (or really any) error recovery and retry logic. TBD how much of a problem that ends up being.
+This action is not as flexible as `actions/upload-artifact`: it only supports uploading a single file -- no globbing. It also doesn't have much (or really any) error recovery and retry logic. TBD how much of a problem that ends up being.
 
 ### Inputs
 All required:
