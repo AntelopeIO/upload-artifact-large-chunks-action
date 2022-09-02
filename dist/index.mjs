@@ -8545,15 +8545,28 @@ try {
       const start = offset;
       const end = offset+send_this_time-1;
       console.log(`uploading ${start}-${end}/${sz}`);
-      await axios__WEBPACK_IMPORTED_MODULE_1__.put(`${uploadURL}?itemPath=${name}/${path}`, node_fs__WEBPACK_IMPORTED_MODULE_2__.createReadStream(path, {start, end}), {
-         httpsAgent: httpsagent,
-         maxBodyLength: 1024*1024*1024,
-         headers: {
-            "Content-Type": "application/octet-stream",
-            "Content-Length": send_this_time,
-            "Content-Range": `bytes ${start}-${end}/${sz}`
+      let retry_count = 0;
+      while(true) {
+         const ret = await axios__WEBPACK_IMPORTED_MODULE_1__.put(`${uploadURL}?itemPath=${name}/${path}`, node_fs__WEBPACK_IMPORTED_MODULE_2__.createReadStream(path, {start, end}), {
+            validateStatus: undefined,
+            httpsAgent: httpsagent,
+            maxBodyLength: 1024*1024*1024,
+            headers: {
+               "Content-Type": "application/octet-stream",
+               "Content-Length": send_this_time,
+               "Content-Range": `bytes ${start}-${end}/${sz}`
+            }
+         });
+         if(ret.status >= 500) {
+            if(retry_count++ > 5)
+               throw new Error(`retried too many times on 5xx errors; last error ${ret.status}`);
+            console.log("retrying...");
+            continue;
          }
-      });
+         if(ret.status < 200 || ret.status >= 300)
+            throw new Error(`got error ${ret.status}`);
+         break;
+      }
       offset += send_this_time;
    }
 
